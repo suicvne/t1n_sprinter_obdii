@@ -176,7 +176,7 @@ def do_main_test():
     elm327.try_read_until_timeout(timeout=1) # Flush
     print("Entering read loop.")
     while True:
-        stdin_response = get_stdin()
+        # stdin_response = get_stdin() TODO: Reimplement stdin? Maybe?
         # received_response = elm327.try_read_until_timeout(timeout=1)
         received_response = elm327.try_read_serial(bytes_written=0)
 
