@@ -135,13 +135,21 @@ def handle_guess_request_code_info(msg_byte, byte_args):
     code_requesting = hex(byte_args[0])[2:] + hex(byte_args[1])[2:]
     print("\t!!! DAD is requesting more information for code '{}'".format(code_requesting))
 
+def get_serial_grep_by_plat():
+    if sys.platform == "linux" or platform == "linux2":
+        return "/dev/ttyUSB*"
+    elif platform == "darwin":
+        return "/dev/tty.usbser*"
+    elif platform == "win32":
+        return "COM1" # Fuck, I don't know how Windows handles serial shit.
 
 def do_main_test():
     print("Current File Name: ", _current_filename)
     signal.signal(signal.SIGINT, signal_handler)
 
-    print("Looking for USB Serial devices....")
-    matched_files = glob.glob('/dev/tty.usbser*')
+    serial_dev_glob = get_serial_grep_by_plat()
+    print("Looking for USB Serial devices. Glob: ", serial_dev_glob)
+    matched_files = glob.glob(serial_dev_glob)
 
     print(matched_files, matched_files.__len__())
 
