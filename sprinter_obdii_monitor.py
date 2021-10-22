@@ -188,7 +188,7 @@ def do_main_test():
         # received_response = elm327.try_read_until_timeout(timeout=1)
         received_response = elm327.try_read_serial(bytes_written=0)
 
-        if received_response.tostring().__len__() > 0 or stdin_response.__len__() > 0:
+        if received_response.tostring().__len__() > 0: #or stdin_response.__len__() > 0:
             sniffed_packets.append(received_response)
             converted = convert_str_to_byte_array(received_response.raw_value.decode())
             # print("[elm327 loop] Stdin: {}; Response: {}; First: {}".format(stdin_response, received_response.raw_value, hex(((received_response.raw_value[0] << 8) | received_response.raw_value[1]))))

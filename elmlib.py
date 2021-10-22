@@ -1,4 +1,6 @@
 import serial
+import io
+import time
 
 # Convenience class for quickly stripping echo'ed characters and getting a sane output
 class ELMRESPONSE:
