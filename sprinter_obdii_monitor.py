@@ -138,9 +138,9 @@ def handle_guess_request_code_info(msg_byte, byte_args):
 def get_serial_grep_by_plat():
     if sys.platform == "linux" or platform == "linux2":
         return "/dev/ttyUSB*"
-    elif platform == "darwin":
+    elif sys.platform == "darwin":
         return "/dev/tty.usbser*"
-    elif platform == "win32":
+    elif sys.platform == "win32":
         return "COM1" # Fuck, I don't know how Windows handles serial shit.
 
 def do_main_test():
