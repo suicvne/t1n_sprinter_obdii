@@ -9,7 +9,8 @@ OBDII protocol.
 
 # Running
 
+You may or may not need to escape `imgui[sdl2]` quotes. If you use zsh, then you definitely will need to. 
 ```
-pip3 install pyserial
+pip3 install pyserial pysdl2 "imgui[sdl2]"
 python3 sprinter_obdii_monitor.py
 ```
