@@ -1,3 +1,4 @@
+import os
 from time import sleep
 from sdl2 import *
 import ctypes
@@ -10,6 +11,7 @@ from sprinter_obdii_monitor import convert_str_to_byte_array, get_serial_devices
 from elmlib import ELM327, ELMRESPONSE, KWPacket
 
 import threading 
+import json
 
 class AtomicBool:
     value = False
@@ -30,10 +32,18 @@ class AtomicBool:
         with self._myLock:
             self.value = newVal
 
-# _tracked_packets = [ELMRESPONSE(b"81 12 F3 3E C4 \r", _parse_kwp=True), ELMRESPONSE(b"81 F3 12 7E 04 \r", _parse_kwp=True), ELMRESPONSE(b"84 12 F3 18 02 FF 00 A2 \r", _parse_kwp=True), ELMRESPONSE(b"85 F3 12 58 01 20 43 20 66 \r", _parse_kwp=True)]
-_tracked_packets = []
+_tracked_packets = [ELMRESPONSE(b"81 12 F3 3E C4 \r", _parse_kwp=True), ELMRESPONSE(b"81 F3 12 7E 04 \r", _parse_kwp=True), ELMRESPONSE(b"84 12 F3 18 02 FF 00 A2 \r", _parse_kwp=True), ELMRESPONSE(b"85 F3 12 58 01 20 43 20 66 \r", _parse_kwp=True)]
+# _tracked_packets = []
 _tracked_packets_lock = threading.Lock()
 _keep_elm_alive = AtomicBool(True)
+
+def serialize_packets():
+    rval = []
+    for p in _tracked_packets:
+        if p is not None:
+            converted_bytes = convert_str_to_byte_array(p.raw_value.decode())
+            rval.append({"date": p.date.timestamp(), "string_value": p.tostring(), "raw_byte_packet": converted_bytes})
+    return rval
 
 
 class MonitorData:
@@ -169,7 +179,7 @@ def ui_init_graphics():
         _impl.process_inputs()
 
         imgui.new_frame()
-        ui_loop(_appData)
+        ui_loop(_appData, _window)
         ui_clear_and_render(_impl, _window)
         # ui_check_elm327(_appData)
         
@@ -198,12 +208,26 @@ def toggle_elm327_conn(appData, shouldConnect):
     else:
         appData.kill_elm327()
 
-def debug_monitor_window_loop(appData):
+def debug_monitor_window_loop(appData, _window):
     if appData.debug_monitor_win_active:
         imgui.begin("Debug Monitor Window", True)
         with _tracked_packets_lock:
             imgui.text("Total Tracked Packets: {}".format(_tracked_packets.__len__()))
         btnText = ""
+
+        if imgui.button("Export JSON"):
+            serialized_packets = serialize_packets()
+            json_str = json.dumps(serialized_packets, indent=4)
+            # TODO: Make a friendly date string for this.
+            if not os.path.exists('dumps'):
+                os.mkdir('dumps')
+            
+            with open("dumps/exported_packets.json", "w") as file:
+                file.write(json_str)
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, b"Wrote JSON", b"Exported Packets to dumps/exported_packets.json", _window)
+        
+        if imgui.button("Import JSON"):
+            None
 
         if appData.connection_active:
             btnText = "Close Connection"
@@ -264,7 +288,7 @@ def debug_monitor_window_loop(appData):
         s.columns_min_spacing = initial
 
 
-def ui_loop(appData):
+def ui_loop(appData, _window):
     if imgui.begin_main_menu_bar():
         if imgui.begin_menu("File", True):
             clicked_quit, selected_quit = imgui.menu_item("Quit", 'Cmd+Q', False, True)
@@ -305,7 +329,7 @@ def ui_loop(appData):
     imgui.text("Hello World!")
     imgui.end()
 
-    debug_monitor_window_loop(appData)
+    debug_monitor_window_loop(appData, _window)
 
 
 def ui_clear_and_render(impl, win):
