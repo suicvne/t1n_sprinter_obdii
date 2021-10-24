@@ -116,16 +116,17 @@ def impl_pysdl2_init():
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24)
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8)
-    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
+    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1) # Probably causes the dGPU to come on with macOS 
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16)
+    # SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16) # Does not work on Ubuntu and why is this even necessary?
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
 
     SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, b"1")
-    # SDL_SetHint(SDL_HINT_VIDEO_HIGHDPI_DISABLED, b"1")
+    # SDL_SetHint(SDL_HINT_VIDEO_HIGHDPI_DISABLED, b"1") # Literally why? Let it be.
+
     window = SDL_CreateWindow(window_name.encode('utf-8'),
                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                               width, height,
@@ -134,6 +135,8 @@ def impl_pysdl2_init():
     if window is None:
         print("Error: Window could not be created! SDL Error: " + SDL_GetError().decode("utf-8"))
         exit(1)
+    else:
+        print("SDL Window: ", window)
 
     gl_context = SDL_GL_CreateContext(window)
     if gl_context is None:
