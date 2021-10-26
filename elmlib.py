@@ -61,9 +61,9 @@ Parameters:
 """
 def test_target(in_format_byte_arr):
     if(in_format_byte_arr.__len__() > 2):
-        return ConvertByteToTargetAddressByte(in_format_byte_arr[1])
+        return ConvertByteToTargetAddressByte(in_format_byte_arr[1]), in_format_byte_arr[1]
     else: 
-        return None
+        return None, in_format_byte_arr[1]
 
 """
 test_source:
@@ -75,7 +75,7 @@ Parameters:
 """
 def test_source(in_format_byte_arr):
     if(in_format_byte_arr.__len__() > 2):
-        return ConvertByteToTargetAddressByte(in_format_byte_arr[2])
+        return ConvertByteToTargetAddressByte(in_format_byte_arr[2]), in_format_byte_arr[2]
     else:
         return None
 
@@ -116,23 +116,41 @@ class KWPacket:
     A1 = False
     HeaderMsgLength = 0
     MsgTarget = SourceAddressByte.UNKNOWN
+    MsgTarget_Raw = 0x00
+
     MsgSource = SourceAddressByte.UNKNOWN
+    MsgSource_Raw = 0x00
+
     ServiceID = KnownServiceIDs.UNKNOWN
+    ServiceID_Raw = 0x00
     Checksum = 0
 
     def service_id_string(self):
-        return "{} (0x{})".format(self.ServiceID.name, hex(self.ServiceID.value).upper()[2:])
+        return "{} (0x{})".format(self.ServiceID.name, hex(self.ServiceID_Raw).upper()[2:])
+    
+    def msg_target_string(self):
+        return "{} (0x{})".format(self.MsgTarget.name, hex(self.MsgTarget_Raw).upper()[2:])
+
+    def msg_source_string(self):
+        return "{} (0x{})".format(self.MsgSource.name, hex(self.MsgSource_Raw).upper()[2:])
 
     def __init__(self, raw_packet):
+        if raw_packet is None or raw_packet.__len__() == 0:
+            print("Skipping blank packet.")
+            # self = None
+            return
+
         self.raw_packet = raw_packet
         self.converted_packet = convert_str_to_byte_array(self.raw_packet)
         self.A0, self.A1 = test_format_byte(self.converted_packet[0])
         self.HeaderMsgLength = test_data_length(self.converted_packet[0])
-        self.MsgTarget = test_target(self.converted_packet)
-        self.MsgSource = test_source(self.converted_packet)
-        self.ServiceID = ConvertByteToKnownServiceIDs(test_service_id(self.converted_packet, self.HeaderMsgLength))
+        self.MsgTarget, self.MsgTarget_Raw = test_target(self.converted_packet)
+        self.MsgSource, self.MsgSource_Raw = test_source(self.converted_packet)
+        self.ServiceID_Raw = test_service_id(self.converted_packet, self.HeaderMsgLength)
+
+        self.ServiceID = ConvertByteToKnownServiceIDs(self.ServiceID_Raw)
         self.Checksum = test_checksum(self.converted_packet, self.HeaderMsgLength)
-        print("   Service ID: ", self.ServiceID)
+        # print("   Service ID: ", self.ServiceID)
 
 
 # Convenience class for quickly stripping echo'ed characters and getting a sane output
@@ -151,11 +169,11 @@ class ELMRESPONSE:
             self.date = _date
         
         if _parse_kwp:
-            try:
-                self.parsed_packet = KWPacket(self.raw_value.decode())
-            except:
-                self.parsed_packet = None
-                print("Exception while trying to parse KWPacket in ELMRESPONSE: ", self.raw_value.decode())
+            # try:
+            self.parsed_packet = KWPacket(self.raw_value.decode())
+            # except:
+                # self.parsed_packet = None
+                # print("Exception while trying to parse KWPacket in ELMRESPONSE: ", self.raw_value.decode())
 
     def tostring(self):
         rstr = ''

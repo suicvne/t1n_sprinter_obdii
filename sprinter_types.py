@@ -10,6 +10,9 @@ class KnownServiceIDs(Enum):
     GUESS_REQUEST_INFO_ON_CODE = 0x17 # From DAD
     GUESS_RESPONSE_INFO_ON_CODE = 0x57 # From ECM, Parameters: FirstByte = Code Count(?), then code, then a series of unknown fields?
 
+    REQUEST_INJECTOR_CODE = 0x30
+    RESPONSE_INJECTOR_CODE = 0x70
+
     GUESS_UNKNOWN_TERMINATOR_TO_ECU = 0x31 # To ECU from DAD; followed by unknown 4 bytes 
     GUESS_UNKNOWN_TERMINATOR_TO_DAD = 0x71 # To DAD from ECU; followed by 13(?) unknown bytes.
 

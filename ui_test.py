@@ -32,8 +32,8 @@ class AtomicBool:
         with self._myLock:
             self.value = newVal
 
-_tracked_packets = [ELMRESPONSE(b"81 12 F3 3E C4 \r", _parse_kwp=True), ELMRESPONSE(b"81 F3 12 7E 04 \r", _parse_kwp=True), ELMRESPONSE(b"84 12 F3 18 02 FF 00 A2 \r", _parse_kwp=True), ELMRESPONSE(b"85 F3 12 58 01 20 43 20 66 \r", _parse_kwp=True)]
-# _tracked_packets = []
+#_tracked_packets = [ELMRESPONSE(b"81 12 F3 3E C4 \r", _parse_kwp=True), ELMRESPONSE(b"81 F3 12 7E 04 \r", _parse_kwp=True), ELMRESPONSE(b"84 12 F3 18 02 FF 00 A2 \r", _parse_kwp=True), ELMRESPONSE(b"85 F3 12 58 01 20 43 20 66 \r", _parse_kwp=True)]
+_tracked_packets = []
 _tracked_packets_lock = threading.Lock()
 _keep_elm_alive = AtomicBool(True)
 
@@ -249,9 +249,13 @@ def debug_monitor_window_loop(appData, _window):
         s.columns_min_spacing = 200
         # imgui.columns_min_spacing = 200
 
-        imgui.columns(3, 'ListBox1')
+        imgui.columns(5, 'ListBox1')
         imgui.separator()
         imgui.text("Time")
+        imgui.next_column()
+        imgui.text("To")
+        imgui.next_column()
+        imgui.text("From")
         imgui.next_column()
         imgui.text("Service ID")
         imgui.next_column()
@@ -267,13 +271,27 @@ def debug_monitor_window_loop(appData, _window):
 
             none_amount = 0
             for p in range(0, _tracked_packets.__len__()):
-                if _tracked_packets[p].parsed_packet is not None:
+                if _tracked_packets[p].parsed_packet is not None and _tracked_packets[p].parsed_packet.HeaderMsgLength > 0:
                     imgui.next_column()
                     # imgui.text("Date Test")
+
+                    # Time
                     _,_selected[p] = imgui.selectable(to_locale_string(_tracked_packets[p].date), _selected[p])
                     imgui.next_column()
+                    
+                    # To
+                    _,_selected[p] = imgui.selectable(_tracked_packets[p].parsed_packet.msg_target_string(), _selected[p])
+                    imgui.next_column()
+
+                    # From
+                    _,_selected[p] = imgui.selectable(_tracked_packets[p].parsed_packet.msg_source_string(), _selected[p])
+                    imgui.next_column()
+
+                    # Service ID
                     _,_selected[p] = imgui.selectable(_tracked_packets[p].parsed_packet.service_id_string(), _selected[p])
                     imgui.next_column()
+
+                    # Raw Packet
                     _,_selected[p] = imgui.selectable(_tracked_packets[p].tostring(), _selected[p])
                 else: none_amount += 1
         
