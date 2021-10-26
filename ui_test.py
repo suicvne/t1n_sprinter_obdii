@@ -39,10 +39,17 @@ _keep_elm_alive = AtomicBool(True)
 
 def serialize_packets():
     rval = []
-    for p in _tracked_packets:
-        if p is not None:
-            converted_bytes = convert_str_to_byte_array(p.raw_value.decode())
-            rval.append({"date": p.date.timestamp(), "string_value": p.tostring(), "raw_byte_packet": converted_bytes})
+    with _tracked_packets_lock:
+        for p in _tracked_packets:
+            if p is not None:
+                converted_bytes = convert_str_to_byte_array(p.raw_value.decode())
+                rval.append({"date": p.date.timestamp(), "string_value": p.tostring(), "raw_byte_packet": converted_bytes})
+    return rval
+
+def deserialize_ser_packets(serialized_packets):
+    rval = []
+    for p in serialized_packets:
+        rval.append(ELMRESPONSE(p["raw_byte_packet"], _date=p["date"], _parse_kwp=True))
     return rval
 
 
@@ -55,6 +62,8 @@ class MonitorData:
     elm327 = 0
     elm_read_thread = 0
     elm_lock = threading.Lock()
+    export_filename = "dumps/exported_json.json"
+    import_filename = "dumps/exported_json.json"
 
     def init_elm327(self, device_string, baud_rate, timeout=5):
         self.elm327 = ELM327(True, device_string, baud_rate, timeout)
@@ -208,6 +217,20 @@ def toggle_elm327_conn(appData, shouldConnect):
     else:
         appData.kill_elm327()
 
+def ui_import_json(appData, _window):
+    if os.path.exists(appData.import_filename):
+        with open(appData.import_filename) as imported_json:
+            json_str = imported_json.readlines()
+            parsed_json = json.loads(json_str)
+            deserialized_packets = deserialize_ser_packets(parsed_json)
+            if deserialize_ser_packets.__len__() > 0:
+                with _tracked_packets_lock:
+                    _tracked_packets = deserialized_packets
+            else:
+                SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, b"Error Parsing JSON", b"Could not deserialize JSON", _window)
+
+            
+
 def debug_monitor_window_loop(appData, _window):
     if appData.debug_monitor_win_active:
         imgui.begin("Debug Monitor Window", True)
@@ -215,6 +238,7 @@ def debug_monitor_window_loop(appData, _window):
             imgui.text("Total Tracked Packets: {}".format(_tracked_packets.__len__()))
         btnText = ""
 
+        # Export Button
         if imgui.button("Export JSON"):
             serialized_packets = serialize_packets()
             json_str = json.dumps(serialized_packets, indent=4)
@@ -225,9 +249,20 @@ def debug_monitor_window_loop(appData, _window):
             with open("dumps/exported_packets.json", "w") as file:
                 file.write(json_str)
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, b"Wrote JSON", b"Exported Packets to dumps/exported_packets.json", _window)
+        imgui.same_line()
         
+        didChange, _newExportFilen = imgui.input_text("Export Filename", appData.export_filename, 1024, 0)
+        if didChange:
+            appData.export_filename = _newExportFilen
+        
+
+        # Import Button
         if imgui.button("Import JSON"):
-            None
+            ui_import_json(appData, _window)
+        imgui.same_line()
+        didChange, _newImportFilen = imgui.input_text("Import Filename", appData.import_filename, 1024, 0)
+        if didChange:
+            appData.import_filename = _newImportFilen
 
         if appData.connection_active:
             btnText = "Close Connection"
