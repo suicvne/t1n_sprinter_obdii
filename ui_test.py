@@ -13,6 +13,8 @@ from elmlib import ELM327, ELMRESPONSE, KWPacket
 import threading 
 import json
 
+from functools import reduce
+
 class AtomicBool:
     value = False
     _myLock = threading.Lock()
@@ -47,23 +49,44 @@ def serialize_packets():
     return rval
 
 def deserialize_ser_packets(serialized_packets):
+    from datetime import datetime
     rval = []
     for p in serialized_packets:
-        rval.append(ELMRESPONSE(p["raw_byte_packet"], _date=p["date"], _parse_kwp=True))
+        if len(p["raw_byte_packet"]) > 0:
+            print("Packet: ", p["raw_byte_packet"])
+            converted_packets = numbers_to_bytestr(p["raw_byte_packet"])
+            print("Converted Packet: ", converted_packets)
+            rval.append(ELMRESPONSE(converted_packets, _date=datetime.fromtimestamp(p["date"]), _parse_kwp=True))
+            print("\n\n")
     return rval
 
+def numbers_to_bytestr(input_num_arr):
+    rval = ''
+    for n in input_num_arr:
+        rval += "{0:#0{1}X}".format(n, 4)[2:] + " "
+    return bytes(rval + "\r", "ascii")
 
 class MonitorData:
+    class ByteConverterData:
+        current_input_str = ""
+        as_ascii = ""
+        as_float = 0.0
+        as_int = 0
+        as_bytes = b''
+
+
     serial_devices = []
     current_serial_device = ""
     connection_active = False
     debug_monitor_win_active = True
     debug_monitor_list_selected = []
+    byte_win_active = False
     elm327 = 0
     elm_read_thread = 0
     elm_lock = threading.Lock()
     export_filename = "dumps/exported_json.json"
     import_filename = "dumps/exported_json.json"
+    byte_win_data = ByteConverterData()
 
     def init_elm327(self, device_string, baud_rate, timeout=5):
         self.elm327 = ELM327(True, device_string, baud_rate, timeout)
@@ -221,15 +244,51 @@ def ui_import_json(appData, _window):
     if os.path.exists(appData.import_filename):
         with open(appData.import_filename) as imported_json:
             json_str = imported_json.readlines()
-            parsed_json = json.loads(json_str)
+            json_full_str = reduce((lambda x, y: x + y), json_str)
+
+            parsed_json = json.loads(json_full_str)
             deserialized_packets = deserialize_ser_packets(parsed_json)
-            if deserialize_ser_packets.__len__() > 0:
+            if deserialized_packets.__len__() > 0:
                 with _tracked_packets_lock:
-                    _tracked_packets = deserialized_packets
+                    _tracked_packets.clear()
+                    for x in deserialized_packets:
+                        _tracked_packets.append(x)
             else:
                 SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, b"Error Parsing JSON", b"Could not deserialize JSON", _window)
 
-            
+import struct 
+
+def byte_window_loop(appData, _window):
+    if appData.byte_win_active is False: return
+    imgui.begin("Byte Converter", True)
+    
+    didChnge,newInputStr= imgui.input_text("Bytes In", appData.byte_win_data.current_input_str, 256, imgui.INPUT_TEXT_CHARS_HEXADECIMAL)
+
+    if didChnge:
+        appData.byte_win_data.current_input_str =  newInputStr
+        if appData.byte_win_data.current_input_str.__len__() == 0:
+            appData.byte_win_data.as_bytes = b''
+            appData.byte_win_data.as_ascii = appData.byte_win_data.as_bytes.decode("ascii", errors="ignore")
+            appData.byte_win_data.as_float = 0.0
+            appData.byte_win_data.as_int = 0
+        else:
+            print("New: ", appData.byte_win_data.current_input_str)
+            b = "{0:#0{1}X}".format(int(appData.byte_win_data.current_input_str, 16), 4)[2:]
+            print("B: ", b)
+            appData.byte_win_data.as_bytes = bytes(b, 'ascii')
+            print("As B: ", appData.byte_win_data.as_bytes)
+            appData.byte_win_data.as_ascii = appData.byte_win_data.as_bytes.decode("ascii", errors="ignore")
+            appData.byte_win_data.as_float = int(appData.byte_win_data.as_bytes, 16) / 256.0
+            appData.byte_win_data.as_int = int(appData.byte_win_data.as_bytes, 16)
+
+    
+    imgui.text("Bytes: {}".format(appData.byte_win_data.as_bytes))
+    imgui.text("ASCII: {}".format(appData.byte_win_data.as_ascii))
+    imgui.text("Float: {}".format(appData.byte_win_data.as_float))
+    imgui.text("Int: {}".format(appData.byte_win_data.as_int))
+
+
+    imgui.end()
 
 def debug_monitor_window_loop(appData, _window):
     if appData.debug_monitor_win_active:
@@ -281,21 +340,31 @@ def debug_monitor_window_loop(appData, _window):
 
         s = imgui.get_style()
         initial = s.columns_min_spacing
-        s.columns_min_spacing = 200
+        # s.columns_min_spacing = 200
         # imgui.columns_min_spacing = 200
 
         imgui.columns(5, 'ListBox1')
         imgui.separator()
         imgui.text("Time")
         imgui.next_column()
+
+        to_col = imgui.get_column_index()
         imgui.text("To")
         imgui.next_column()
+
+        from_col = imgui.get_column_index()
         imgui.text("From")
         imgui.next_column()
         imgui.text("Service ID")
         imgui.next_column()
+
+        packet_col = imgui.get_column_index()
         imgui.text("Packet")
         imgui.separator()
+
+        imgui.set_column_width(to_col, 80)
+        imgui.set_column_width(from_col, 80)
+        imgui.set_column_width(packet_col, 1200)
         
         
         # imgui.set_column_offset(1, 40)
@@ -344,14 +413,8 @@ def debug_monitor_window_loop(appData, _window):
 def ui_loop(appData, _window):
     if imgui.begin_main_menu_bar():
         if imgui.begin_menu("File", True):
-            clicked_quit, selected_quit = imgui.menu_item("Quit", 'Cmd+Q', False, True)
-            clicked_refresh_dev, _ = imgui.menu_item("Refresh Devices", "Cmd+R", False, True)
-            clicked_debug_monitor, _ = imgui.menu_item("Debug Monitor Mode", "Cmd+M", False, True)
-
-            if clicked_debug_monitor:
-                appData.debug_monitor_win_active = not appData.debug_monitor_win_active
-                print("Show Debug Win: ", appData.debug_monitor_win_active)
-
+            clicked_quit, selected_quit = imgui.menu_item("Quit", "Cmd + Q", False, True)
+            clicked_refresh_dev, _ = imgui.menu_item("Refresh Devices", "Cmd + R", False, True)
 
             if clicked_refresh_dev:
                 appData.refresh_serial_devices()
@@ -364,6 +427,20 @@ def ui_loop(appData, _window):
                     exit(1)
                 
             imgui.end_menu()
+        
+        if imgui.begin_menu("Window", True):
+            clicked_debug_monitor, _ = imgui.menu_item("Debug Monitor Mode", "Cmd + M", False, True)
+            clicked_byte_converter, _ = imgui.menu_item("Byte Conveter", "Cmd + B", False, True)
+
+            if clicked_debug_monitor:
+                appData.debug_monitor_win_active = not appData.debug_monitor_win_active
+                print("Show Debug Win: ", appData.debug_monitor_win_active)
+            
+            if clicked_byte_converter:
+                appData.byte_win_active = not appData.byte_win_active
+            
+            imgui.end_menu()
+            
 
         if imgui.begin_menu("Devices", True):
             if appData.serial_devices.__len__() == 0:
@@ -383,6 +460,7 @@ def ui_loop(appData, _window):
     imgui.end()
 
     debug_monitor_window_loop(appData, _window)
+    byte_window_loop(appData, _window)
 
 
 def ui_clear_and_render(impl, win):
