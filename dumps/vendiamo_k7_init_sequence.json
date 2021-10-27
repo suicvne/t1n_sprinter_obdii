@@ -1,0 +1,200 @@
+[
+    {
+        "date": 1635348041.389935,
+        "string_value": "",
+        "raw_byte_packet": []
+    },
+    {
+        "date": 1635348046.395311,
+        "string_value": "",
+        "raw_byte_packet": []
+    },
+    {
+        "date": 1635348051.398069,
+        "string_value": "",
+        "raw_byte_packet": []
+    },
+    {
+        "date": 1635348056.399366,
+        "string_value": "",
+        "raw_byte_packet": []
+    },
+    {
+        "date": 1635348061.400053,
+        "string_value": "",
+        "raw_byte_packet": []
+    },
+    {
+        "date": 1635348066.400529,
+        "string_value": "",
+        "raw_byte_packet": []
+    },
+    {
+        "date": 1635348071.407786,
+        "string_value": "",
+        "raw_byte_packet": []
+    },
+    {
+        "date": 1635348076.412861,
+        "string_value": "",
+        "raw_byte_packet": []
+    },
+    {
+        "date": 1635348081.416013,
+        "string_value": "",
+        "raw_byte_packet": []
+    },
+    {
+        "date": 1635348082.611366,
+        "string_value": "81 12 F3 81 07 \r",
+        "raw_byte_packet": [
+            129,
+            18,
+            243,
+            129,
+            7
+        ]
+    },
+    {
+        "date": 1635348087.613865,
+        "string_value": "",
+        "raw_byte_packet": []
+    },
+    {
+        "date": 1635348092.614379,
+        "string_value": "",
+        "raw_byte_packet": []
+    },
+    {
+        "date": 1635348097.616439,
+        "string_value": "",
+        "raw_byte_packet": []
+    },
+    {
+        "date": 1635348097.687433,
+        "string_value": "81 12 F3 81 07 \r",
+        "raw_byte_packet": [
+            129,
+            18,
+            243,
+            129,
+            7
+        ]
+    },
+    {
+        "date": 1635348097.688296,
+        "string_value": "83 F3 12 C1 EF 8F C7 \r",
+        "raw_byte_packet": [
+            131,
+            243,
+            18,
+            193,
+            239,
+            143,
+            199
+        ]
+    },
+    {
+        "date": 1635348098.386996,
+        "string_value": "82 12 F3 83 00 0A \r",
+        "raw_byte_packet": [
+            130,
+            18,
+            243,
+            131,
+            0,
+            10
+        ]
+    },
+    {
+        "date": 1635348098.400926,
+        "string_value": "87 F3 12 C3 00 00 EF 00 78 00 B6 \r",
+        "raw_byte_packet": [
+            135,
+            243,
+            18,
+            195,
+            0,
+            0,
+            239,
+            0,
+            120,
+            0,
+            182
+        ]
+    },
+    {
+        "date": 1635348099.073197,
+        "string_value": "87 12 F3 83 03 00 EF 00 78 00 79 \r",
+        "raw_byte_packet": [
+            135,
+            18,
+            243,
+            131,
+            3,
+            0,
+            239,
+            0,
+            120,
+            0,
+            121
+        ]
+    },
+    {
+        "date": 1635348099.082748,
+        "string_value": "82 F3 12 C3 03 4D \r",
+        "raw_byte_packet": [
+            130,
+            243,
+            18,
+            195,
+            3,
+            77
+        ]
+    },
+    {
+        "date": 1635348100.172863,
+        "string_value": "82 12 F3 1A 86 27 \r",
+        "raw_byte_packet": [
+            130,
+            18,
+            243,
+            26,
+            134,
+            39
+        ]
+    },
+    {
+        "date": 1635348100.191908,
+        "string_value": "92 F3 12 5A 86 64 71 53 28 79 43 02 28 04 03 45 92 00 05 11 20 C1 \r",
+        "raw_byte_packet": [
+            146,
+            243,
+            18,
+            90,
+            134,
+            100,
+            113,
+            83,
+            40,
+            121,
+            67,
+            2,
+            40,
+            4,
+            3,
+            69,
+            146,
+            0,
+            5,
+            17,
+            32,
+            193
+        ]
+    },
+    {
+        "date": 1635348105.197008,
+        "string_value": "",
+        "raw_byte_packet": []
+    }
+]

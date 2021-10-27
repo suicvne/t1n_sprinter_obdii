@@ -1,0 +1,57 @@
+[
+    {
+        "date": 1635348307.59551,
+        "string_value": "",
+        "raw_byte_packet": []
+    },
+    {
+        "date": 1635348310.314433,
+        "string_value": "83 12 F3 30 01 01 BA \r",
+        "raw_byte_packet": [
+            131,
+            18,
+            243,
+            48,
+            1,
+            1,
+            186
+        ]
+    },
+    {
+        "date": 1635348310.505051,
+        "string_value": "8C F3 12 70 01 01 82 00 7B 00 04 00 91 80 18 2D \r",
+        "raw_byte_packet": [
+            140,
+            243,
+            18,
+            112,
+            1,
+            1,
+            130,
+            0,
+            123,
+            0,
+            4,
+            0,
+            145,
+            128,
+            24,
+            45
+        ]
+    },
+    {
+        "date": 1635348315.505778,
+        "string_value": "",
+        "raw_byte_packet": []
+    },
+    {
+        "date": 1635348320.507716,
+        "string_value": "",
+        "raw_byte_packet": []
+    },
+    {
+        "date": 1635348325.509763,
+        "string_value": "",
+        "raw_byte_packet": []
+    }
+]
