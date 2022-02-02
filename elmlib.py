@@ -187,6 +187,17 @@ class ELMRESPONSE:
         
         return str(rstr)
 
+    def data_only_tostring(self):
+        rstr = ''
+
+        if(self.raw_value.__len__() > (6 * 2)):
+            for c in self.raw_value[(4 * 3):self.raw_value.__len__() - 5]:
+                rstr += chr(c)
+        else:
+            print("ERROR:", self.raw_value)
+        
+        return str(rstr)
+
     def printme(self):
         print("Response:\n\t", self.raw_value, "\n\t", self.tostring())
 

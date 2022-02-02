@@ -290,6 +290,9 @@ def byte_window_loop(appData, _window):
 
     imgui.end()
 
+def get_count_selected(appData):
+     return filter(lambda s: s, appData.debug_monitor_list_selected)
+
 def debug_monitor_window_loop(appData, _window):
     if appData.debug_monitor_win_active:
         imgui.begin("Debug Monitor Window", True)
@@ -327,11 +330,16 @@ def debug_monitor_window_loop(appData, _window):
             btnText = "Close Connection"
         else:
             btnText = "Open Connection"
+
+        
         
 
         if imgui.button(btnText):
             appData.connection_active = not appData.connection_active
             toggle_elm327_conn(appData, appData.connection_active)
+        
+        clicked_interpret_data = imgui.button("Interpret Data")
+
 
         # _raw_responses = map(lambda item: item.tostring(), _test_data)
         # imgui.listbox_header("ListBox1", 200, 100)
@@ -343,7 +351,7 @@ def debug_monitor_window_loop(appData, _window):
         # s.columns_min_spacing = 200
         # imgui.columns_min_spacing = 200
 
-        imgui.columns(5, 'ListBox1')
+        imgui.columns(6, 'ListBox1')
         imgui.separator()
         imgui.text("Time")
         imgui.next_column()
@@ -355,16 +363,21 @@ def debug_monitor_window_loop(appData, _window):
         from_col = imgui.get_column_index()
         imgui.text("From")
         imgui.next_column()
+
         imgui.text("Service ID")
         imgui.next_column()
 
         packet_col = imgui.get_column_index()
         imgui.text("Packet")
-        imgui.separator()
+        imgui.next_column()
+        
+        data_col = imgui.get_column_index()
+        imgui.text("Data Only")
 
         imgui.set_column_width(to_col, 80)
         imgui.set_column_width(from_col, 80)
-        imgui.set_column_width(packet_col, 1200)
+        #imgui.set_column_width(packet_col, 700)
+        # imgui.set_column_width(data_col, 500)
         
         
         # imgui.set_column_offset(1, 40)
@@ -397,6 +410,10 @@ def debug_monitor_window_loop(appData, _window):
 
                     # Raw Packet
                     _,_selected[p] = imgui.selectable(_tracked_packets[p].tostring(), _selected[p])
+                    imgui.next_column()
+
+                    # Data Packet, if applicable
+                    _,_selected[p] = imgui.selectable(_tracked_packets[p].data_only_tostring(), _selected[p])
                 else: none_amount += 1
         
         # if none_amount > 0:
@@ -406,6 +423,9 @@ def debug_monitor_window_loop(appData, _window):
         imgui.end()
 
         appData.debug_monitor_list_selected = _selected
+        selected_list = list(get_count_selected(appData))
+        if clicked_interpret_data and selected_list.__len__() > 0:
+            print("call with data")
 
         s.columns_min_spacing = initial
 
@@ -430,7 +450,7 @@ def ui_loop(appData, _window):
         
         if imgui.begin_menu("Window", True):
             clicked_debug_monitor, _ = imgui.menu_item("Debug Monitor Mode", "Cmd + M", False, True)
-            clicked_byte_converter, _ = imgui.menu_item("Byte Conveter", "Cmd + B", False, True)
+            clicked_byte_converter, _ = imgui.menu_item("Simple Byte Converter", "Cmd + B", False, True)
 
             if clicked_debug_monitor:
                 appData.debug_monitor_win_active = not appData.debug_monitor_win_active
